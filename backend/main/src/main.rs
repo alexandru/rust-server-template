@@ -1,35 +1,14 @@
-//! Minimal backend entry point.
-
 use std::io::{self, Write};
 
+use signal_hook::consts::signal::{SIGINT, SIGTERM};
+use signal_hook::iterator::Signals;
+
 fn main() -> io::Result<()> {
-    tokio::runtime::Builder::new_current_thread()
-        .enable_all()
-        .build()?
-        .block_on(run())
-}
-
-async fn run() -> io::Result<()> {
-    #[cfg(unix)]
-    let (mut interrupt, mut terminate) = {
-        use tokio::signal::unix::{SignalKind, signal};
-
-        (
-            signal(SignalKind::interrupt())?,
-            signal(SignalKind::terminate())?,
-        )
-    };
+    let mut signals = Signals::new([SIGINT, SIGTERM])?;
 
     writeln!(io::stdout().lock(), "Hello world")?;
 
-    #[cfg(unix)]
-    tokio::select! {
-        _ = interrupt.recv() => {}
-        _ = terminate.recv() => {}
-    }
-
-    #[cfg(not(unix))]
-    tokio::signal::ctrl_c().await?;
+    let _ = signals.forever().next();
 
     Ok(())
 }

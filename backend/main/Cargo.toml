@@ -9,7 +9,7 @@ name = "backend"
 path = "src/main.rs"
 
 [dependencies]
-tokio.workspace = true
+signal-hook.workspace = true
 
 [lints]
 workspace = true
